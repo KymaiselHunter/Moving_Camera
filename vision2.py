@@ -39,7 +39,7 @@ class RecentData:
 dataHold = RecentData()
 
 # Create a face detector instance with the live stream mode:
-def print_result(result: FaceDetectorResult, output_image: mp.Image, timestamp_ms: int):
+def process_result(result: FaceDetectorResult, output_image: mp.Image, timestamp_ms: int):
     #print('face detector result: {}'.format(result))
     if result.detections:
       dataHold.push(result, timestamp_ms)
@@ -50,7 +50,7 @@ def print_result(result: FaceDetectorResult, output_image: mp.Image, timestamp_m
 options = FaceDetectorOptions(
     base_options=BaseOptions(model_asset_path='Models/blaze_face_short_range.tflite'),
     running_mode=VisionRunningMode.LIVE_STREAM,
-    result_callback=print_result)
+    result_callback=process_result)
 with FaceDetector.create_from_options(options) as detector:
   # The detector is initialized. Use it here.
   # ...
@@ -94,7 +94,24 @@ with FaceDetector.create_from_options(options) as detector:
     res, time = dataHold.pop()
 
     if res and 100 > abs(time-frame_timestamp_ms):
-      cv2.imshow('cam',util.visualize(frame,res))
+      frame = util.visualize(frame,res)
+      print()
+      print(res)
+
+      centerScreenX = int(len(frame[0])/2)
+      centerScreenY = int(len(frame)/2)
+
+      detection = res.detections[0]
+
+      centerRecX = int((detection.bounding_box.origin_x+detection.bounding_box.height/2))
+      centerRecY = int((detection.bounding_box.origin_y+detection.bounding_box.width/2))
+
+      #print(centerScreenX, centerScreenY)
+
+      cv2.line(frame, (centerScreenX, centerScreenY), (centerRecX, centerRecY), (255, 255, 0), 3)
+
+
+      cv2.imshow('cam', frame)
     else:
       cv2.imshow('cam',frame)#cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
