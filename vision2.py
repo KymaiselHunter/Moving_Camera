@@ -3,7 +3,7 @@ import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
-import utilities 
+import utilities as util
 
 #basic cv2 stuff
 import cv2 
@@ -15,9 +15,37 @@ FaceDetectorOptions = mp.tasks.vision.FaceDetectorOptions
 FaceDetectorResult = mp.tasks.vision.FaceDetectorResult
 VisionRunningMode = mp.tasks.vision.RunningMode
 
+class RecentData:
+  def __init__(self):
+    self.results = None
+    self.time = None
+
+  def pop(self):
+    if self.results:
+      holdRes = self.results
+      holdTime = self.time
+
+      self.results = None
+      self.time = None
+
+      return holdRes, holdTime
+    else:
+      return False, False
+  
+  def push(self,result, time):
+    self.results = result
+    self.time = time
+
+dataHold = RecentData()
+
 # Create a face detector instance with the live stream mode:
 def print_result(result: FaceDetectorResult, output_image: mp.Image, timestamp_ms: int):
-    print('face detector result: {}'.format(result))
+    #print('face detector result: {}'.format(result))
+    if result.detections:
+      dataHold.push(result, timestamp_ms)
+    #print(" ")
+    
+
 
 options = FaceDetectorOptions(
     base_options=BaseOptions(model_asset_path='Models/blaze_face_short_range.tflite'),
@@ -27,7 +55,7 @@ with FaceDetector.create_from_options(options) as detector:
   # The detector is initialized. Use it here.
   # ...
     
-  cap = cv2.VideoCapture(0)
+  cap = cv2.VideoCapture(1)
 
   # Use OpenCV’s VideoCapture to start capturing from the webcam.
   while cap.isOpened():
@@ -36,7 +64,7 @@ with FaceDetector.create_from_options(options) as detector:
     ret, frame = cap.read()
 
     if not ret:
-      break
+      continue
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
       break
@@ -58,12 +86,17 @@ with FaceDetector.create_from_options(options) as detector:
 
     
 
-    detection_result = detector.detect_async(mp_image, frame_timestamp_ms)
+    detector.detect_async(mp_image, frame_timestamp_ms)
 
     #========
     # display
     #========
-    cv2.imshow('cam',frame)#cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+    res, time = dataHold.pop()
+
+    if res and 100 > abs(time-frame_timestamp_ms):
+      cv2.imshow('cam',util.visualize(frame,res))
+    else:
+      cv2.imshow('cam',frame)#cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
 
   cap.release()
