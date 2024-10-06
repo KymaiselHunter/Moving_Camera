@@ -177,165 +177,118 @@ with FaceDetector.create_from_options(options) as detector:
       centerRecX = int((detection.bounding_box.origin_x+detection.bounding_box.height/2))
       centerRecY = int((detection.bounding_box.origin_y+detection.bounding_box.width/2))
 
-      #print(centerScreenX, centerScreenY)
-
       if abs(centerScreenY-centerRecY) >= 50 or abs(centerScreenX-centerRecX) >= 50:
         cv2.line(frame, (centerScreenX, centerScreenY), (centerRecX, centerRecY), (255, 255, 0), 3)
       cv2.rectangle(frame, (centerScreenX-50, centerScreenY-50), (centerScreenX+50, centerScreenY+50), (0, 255, 0), 5)
 
       if abs(centerScreenY-centerRecY) < 50:
         if up != 0:
-          #serialInst.write(str(0).encode('utf-8'))
           up = 0
-          #print("0")
       elif centerRecY > centerScreenY:
         if up != -1:
-          #serialInst.write(str(-1).encode('utf-8'))
           up = -1
-          #print("-1")
       elif centerRecY < centerScreenY:
         if up != 1:
-          #serialInst.write(str(1).encode('utf-8'))
           up = 1
-          #print("1")
-      #serialInst.write(str((centerRecY / len(frame)) * 180).encode('utf-8'))
 
       if abs(centerScreenX-centerRecX) < 50:
         if right != 0:
-          #serialInst.write(str(0).encode('utf-8'))
           right = 0
-          #print("0")
       elif centerRecX > centerScreenX:
         if right != -1:
-          #serialInst.write(str(-1).encode('utf-8'))
           right = -1
-          #print("-1")
       elif centerRecX < centerScreenX:
         if right != 1:
-          #serialInst.write(str(1).encode('utf-8'))
           right = 1
-          #print("1")
-      #serialInst.write(str((centerRecY / len(frame)) * 180).encode('utf-8'))
-
 
       if valid_motor_iteration:
-        #if mode == 0:
-        #  serialInst.write(str(120).encode('utf-8'))
-        #elif mode == 1:
-        #  serialInst.write(str(90).encode('utf-8'))
-        #elif mode == 2:
-        #  serialInst.write(str(60).encode('utf-8'))
-
-        #mode += 1
-
-        #if mode >= 3:
-        #  mode = 0
         move = False
 
         if up == -1:
           move = True
           if abs(centerScreenY-centerRecY) < 60:
-            angleX += 2
-            print('a')
+            angleY += 2
           elif abs(centerScreenY-centerRecY) < 75:
-            angleX += 4
-            print('b')
+            angleY += 4
           elif abs(centerScreenY-centerRecY) < 100:
-            angleX += 5
-            print('c')
+            angleY += 5
           elif abs(centerScreenY-centerRecY) < 125:
-            angleX += 7
-            print('d')
+            angleY += 7
           elif abs(centerScreenY-centerRecY) < 150:
-            angleX += 9
-            print('e')
-          else:# abs(centerScreenY-centerRecY) > 125:
-            angleX += 12
-            print('f')
-          angleX = min(180, angleX)
-          #serialInst.write(str(angleX).encode('utf-8'))
+            angleY += 9
+          else:
+            angleY += 12
+          angleY = min(180, angleY)
         elif up == 1:
           move = True
           if abs(centerScreenY-centerRecY) < 60:
-            angleX -= 2
-            print('1')
+            angleY -= 2
           elif abs(centerScreenY-centerRecY) < 75:
-            angleX -= 4
-            print('2')
+            angleY -= 4
           elif abs(centerScreenY-centerRecY) < 100:
-            angleX -= 5
-            print('3')
+            angleY -= 5
           elif abs(centerScreenY-centerRecY) < 125:
-            angleX -= 7
-            print('4')
+            angleY -= 7
           elif abs(centerScreenY-centerRecY) < 150:
+            angleY -= 9
+          else:
+            angleY -= 12
+          angleY = max(0, angleY)
+        
+        oldanglex= angleX
+        # now same thing for the x dir
+        if right == 1:
+          move = True
+          if abs(centerScreenX-centerRecX) < 60:
+            angleX += 2
+          elif abs(centerScreenX-centerRecX) < 75:
+            angleX += 4
+          elif abs(centerScreenX-centerRecX) < 100:
+            angleX += 5
+          elif abs(centerScreenX-centerRecX) < 125:
+            angleX += 7
+          elif abs(centerScreenX-centerRecX) < 150:
+            angleX += 9
+          elif abs(centerScreenX-centerRecX) < 175:
+            angleX += 12
+          elif abs(centerScreenX-centerRecX) < 200:
+            angleX += 15
+          elif abs(centerScreenX-centerRecX) < 250:
+            angleX += 20
+          else:
+            angleX += 25
+          angleX = min(180, angleX)
+        elif right == -1:
+          move = True
+          if abs(centerScreenX-centerRecX) < 60:
+            angleX -= 2
+          elif abs(centerScreenX-centerRecX) < 75:
+            angleX -= 4
+          elif abs(centerScreenX-centerRecX) < 100:
+            angleX -= 5
+          elif abs(centerScreenX-centerRecX) < 125:
+            angleX -= 7
+          elif abs(centerScreenX-centerRecX) < 150:
             angleX -= 9
-            print('5')
-          else:# abs(centerScreenY-centerRecY) > 125:
+          elif abs(centerScreenX-centerRecX) < 175:
             angleX -= 12
-            print('6')
+          elif abs(centerScreenX-centerRecX) < 200:
+            angleX -= 15
+          elif abs(centerScreenX-centerRecX) < 250:
+            angleX -= 20
+          else:
+            angleX -= 25
           angleX = max(0, angleX)
-          #serialInst.write(str(angleX).encode('utf-8'))
-          
-        # now same thing for steps, but instead
-        # i am going add by degrees instead of tracking degrees
-        # then i am going to convert those degrees to steps
-        step = 0
-        if right == -1:
-          move = True
-          if abs(centerScreenX-centerRecX) < 60:
-            step += 2
-            #print('a')
-          elif abs(centerScreenX-centerRecX) < 75:
-            step += 4
-            #print('b')
-          elif abs(centerScreenX-centerRecX) < 100:
-            step += 5
-            #print('c')
-          elif abs(centerScreenX-centerRecX) < 125:
-            step += 7
-            #print('d')
-          elif abs(centerScreenX-centerRecX) < 150:
-            step += 9
-            #print('e')
-          else:# abs(centerScreenX-centerRecX) > 125:
-            step += 12
-            #print('f')
-        elif right == 1:
-          move = True
-          if abs(centerScreenX-centerRecX) < 60:
-            step -= 2
-            #print('1')
-          elif abs(centerScreenX-centerRecX) < 75:
-            step -= 4
-            #print('2')
-          elif abs(centerScreenX-centerRecX) < 100:
-            step -= 5
-            #print('3')
-          elif abs(centerScreenX-centerRecX) < 125:
-            step -= 7
-          elif abs(centerScreenX-centerRecX) < 150:
-            step -= 9
-          else:# abs(centerScreenY-centerRecY) > 125:
-            step -= 12
-
-        step /= 360
-        step = int(step * 2048)
+        print(abs(oldanglex-angleX))
         if move:
-          print("mvoe", angleX, step)
-          print(f"{angleX} {step}\n")
-          serialInst.write(f"{angleX} {step}\n".encode('utf-8'))
+          serialInst.write(f"{angleY} {angleX}\n".encode('utf-8'))
       
       cv2.imshow('cam', frame)
     else:
-      cv2.imshow('cam',frame)#cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-      #angleX = 90
-      #angleY = 90
-      if valid_motor_iteration:
-        serialInst.write("90 0\n".encode('utf-8'))
+      cv2.imshow('cam',frame)
 
   #reset motor
-  serialInst.write("90 0\n".encode('utf-8'))
+  serialInst.write("90 90\n".encode('utf-8'))
 
   # release camera
   cap.release()
