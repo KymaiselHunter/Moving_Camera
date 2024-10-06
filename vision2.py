@@ -86,6 +86,16 @@ with FaceDetector.create_from_options(options) as detector:
   #grab the cam to be used
   cap = cv2.VideoCapture(1)
 
+  # Set the desired width and height for the capture
+  # Try higher resolutions like 1280x720 or 1920x1080 for a wider field of view
+  cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+  cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+
+  ## Check the actual resolution to confirm
+  #width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+  #height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+  #print(f"Resolution set to: {width}x{height}")
+
   # ready motor timers
   MOTOR_INTERVAL = 1.25
   last_time = time.time() - MOTOR_INTERVAL
@@ -189,25 +199,44 @@ with FaceDetector.create_from_options(options) as detector:
       #serialInst.write(str((centerRecY / len(frame)) * 180).encode('utf-8'))
 
       if valid_motor_iteration:
-        if mode == 0:
-          serialInst.write(str(0).encode('utf-8'))
+        #if mode == 0:
+        #  serialInst.write(str(120).encode('utf-8'))
         #elif mode == 1:
         #  serialInst.write(str(90).encode('utf-8'))
-        elif mode == 1:
-          serialInst.write(str(180).encode('utf-8'))
+        #elif mode == 2:
+        #  serialInst.write(str(60).encode('utf-8'))
 
-        mode += 1
+        #mode += 1
 
-        if mode >= 2:
-          mode = 0
+        #if mode >= 3:
+        #  mode = 0
+        if up == -1:
+          if abs(centerScreenY-centerRecY) < 75:
+            angleX += 5
+          elif abs(centerScreenY-centerRecY) > 125:
+            angleX += 15
+          else:
+            angleX += 10
+          angleX = min(180, angleX)
+          serialInst.write(str(angleX).encode('utf-8'))
+        elif up == 1:
+          if abs(centerScreenY-centerRecY) < 75:
+            angleX -= 5
+          elif abs(centerScreenY-centerRecY) > 125:
+            angleX -= 15
+          else:
+            angleX -= 10
+          angleX = max(0, angleX)
+          serialInst.write(str(angleX).encode('utf-8'))
+          
 
       cv2.imshow('cam', frame)
     else:
       cv2.imshow('cam',frame)#cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-      angleX = 90
-      angleY = 90
-      if valid_motor_iteration:
-        serialInst.write(str(angleY).encode('utf-8'))
+      #angleX = 90
+      #angleY = 90
+      #if valid_motor_iteration:
+      #  serialInst.write(str(angleY).encode('utf-8'))
 
 
   # release camera
