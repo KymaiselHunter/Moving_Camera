@@ -185,17 +185,17 @@ with FaceDetector.create_from_options(options) as detector:
         if up != 0:
           #serialInst.write(str(0).encode('utf-8'))
           up = 0
-          print("0")
+          #print("0")
       elif centerRecY > centerScreenY:
         if up != -1:
           #serialInst.write(str(-1).encode('utf-8'))
           up = -1
-          print("-1")
+          #print("-1")
       elif centerRecY < centerScreenY:
         if up != 1:
           #serialInst.write(str(1).encode('utf-8'))
           up = 1
-          print("1")
+          #print("1")
       #serialInst.write(str((centerRecY / len(frame)) * 180).encode('utf-8'))
 
       if valid_motor_iteration:
@@ -211,21 +211,45 @@ with FaceDetector.create_from_options(options) as detector:
         #if mode >= 3:
         #  mode = 0
         if up == -1:
-          if abs(centerScreenY-centerRecY) < 75:
+          if abs(centerScreenY-centerRecY) < 60:
+            angleX += 2
+            print('a')
+          elif abs(centerScreenY-centerRecY) < 75:
+            angleX += 4
+            print('b')
+          elif abs(centerScreenY-centerRecY) < 100:
             angleX += 5
-          elif abs(centerScreenY-centerRecY) > 125:
-            angleX += 15
-          else:
-            angleX += 10
+            print('c')
+          elif abs(centerScreenY-centerRecY) < 125:
+            angleX += 7
+            print('d')
+          elif abs(centerScreenY-centerRecY) < 150:
+            angleX += 9
+            print('e')
+          else:# abs(centerScreenY-centerRecY) > 125:
+            angleX += 12
+            print('f')
           angleX = min(180, angleX)
           serialInst.write(str(angleX).encode('utf-8'))
         elif up == 1:
-          if abs(centerScreenY-centerRecY) < 75:
+          if abs(centerScreenY-centerRecY) < 60:
+            angleX -= 2
+            print('1')
+          elif abs(centerScreenY-centerRecY) < 75:
+            angleX -= 4
+            print('2')
+          elif abs(centerScreenY-centerRecY) < 100:
             angleX -= 5
-          elif abs(centerScreenY-centerRecY) > 125:
-            angleX -= 15
-          else:
-            angleX -= 10
+            print('3')
+          elif abs(centerScreenY-centerRecY) < 125:
+            angleX -= 7
+            print('4')
+          elif abs(centerScreenY-centerRecY) < 150:
+            angleX -= 9
+            print('5')
+          else:# abs(centerScreenY-centerRecY) > 125:
+            angleX -= 12
+            print('6')
           angleX = max(0, angleX)
           serialInst.write(str(angleX).encode('utf-8'))
           
@@ -238,6 +262,8 @@ with FaceDetector.create_from_options(options) as detector:
       #if valid_motor_iteration:
       #  serialInst.write(str(angleY).encode('utf-8'))
 
+  #reset motor
+  serialInst.write(str(90).encode('utf-8'))
 
   # release camera
   cap.release()
