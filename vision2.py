@@ -11,11 +11,14 @@ import utilities as util
 #basic cv2 stuff
 import cv2 
 
+#import time for giving breaks in between serials writes
+import time
+
 #port set up
 ports = serial.tools.list_ports.comports()
 serialInst = serial.Serial()
 
-serialInst.baudrate = 115200
+serialInst.baudrate = 9600
 serialInst.port = ports[0].device
 serialInst.open()
 
@@ -83,6 +86,15 @@ with FaceDetector.create_from_options(options) as detector:
   #grab the cam to be used
   cap = cv2.VideoCapture(1)
 
+  # ready motor timers
+  MOTOR_INTERVAL = 1.25
+  last_time = time.time() - MOTOR_INTERVAL
+  mode = 0
+
+  # instantiate the begining angles
+  angleX = 90
+  angleY = 90
+
   # Use OpenCV’s VideoCapture to start capturing from the webcam.
   while cap.isOpened():
 
@@ -112,16 +124,38 @@ with FaceDetector.create_from_options(options) as detector:
     frame_timestamp_ms = int(cap.get(cv2.CAP_PROP_POS_MSEC))
 
     detector.detect_async(mp_image, frame_timestamp_ms)
+    
+    # motor timer
+    valid_motor_iteration = False
+    current_time = time.time()
+    #print("time", current_time)
+    if current_time - last_time >= MOTOR_INTERVAL:
+      #print("move")
+      last_time = current_time
+      valid_motor_iteration = True
+
+      #if mode == 0:
+      #  serialInst.write(str(0).encode('utf-8'))
+      ##elif mode == 1:
+      ##  serialInst.write(str(90).encode('utf-8'))
+      #elif mode == 1:
+      #  serialInst.write(str(180).encode('utf-8'))
+
+      #mode += 1
+
+      #if mode >= 2:
+      #  mode = 0
+
 
     #========
     # display
     #========
-    res, time = dataHold.pop()
+    res, ms = dataHold.pop()
 
-    if res and 100 > abs(time-frame_timestamp_ms):
+    if res and 100 > abs(ms-frame_timestamp_ms):
       frame = util.visualize(frame,res)
-      print()
-      print(res)
+      #print()
+      #print(res)
 
       centerScreenX = int(len(frame[0])/2)
       centerScreenY = int(len(frame)/2)
@@ -133,21 +167,47 @@ with FaceDetector.create_from_options(options) as detector:
 
       #print(centerScreenX, centerScreenY)
 
-      cv2.line(frame, (centerScreenX, centerScreenY), (centerRecX, centerRecY), (255, 255, 0), 3)
+      if abs(centerScreenY-centerRecY) >= 50:
+        cv2.line(frame, (centerScreenX, centerScreenY), (centerRecX, centerRecY), (255, 255, 0), 3)
+      cv2.rectangle(frame, (centerScreenX-50, centerScreenY-50), (centerScreenX+50, centerScreenY+50), (0, 255, 0), 5)
 
-      if centerRecY > centerScreenY:
+      if abs(centerScreenY-centerRecY) < 50:
+        if up != 0:
+          #serialInst.write(str(0).encode('utf-8'))
+          up = 0
+          print("0")
+      elif centerRecY > centerScreenY:
         if up != -1:
-          serialInst.write(str(180).encode('utf-8'))
+          #serialInst.write(str(-1).encode('utf-8'))
           up = -1
+          print("-1")
       elif centerRecY < centerScreenY:
         if up != 1:
-          serialInst.write(str(0).encode('utf-8'))
+          #serialInst.write(str(1).encode('utf-8'))
           up = 1
+          print("1")
       #serialInst.write(str((centerRecY / len(frame)) * 180).encode('utf-8'))
+
+      if valid_motor_iteration:
+        if mode == 0:
+          serialInst.write(str(0).encode('utf-8'))
+        #elif mode == 1:
+        #  serialInst.write(str(90).encode('utf-8'))
+        elif mode == 1:
+          serialInst.write(str(180).encode('utf-8'))
+
+        mode += 1
+
+        if mode >= 2:
+          mode = 0
 
       cv2.imshow('cam', frame)
     else:
       cv2.imshow('cam',frame)#cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+      angleX = 90
+      angleY = 90
+      if valid_motor_iteration:
+        serialInst.write(str(angleY).encode('utf-8'))
 
 
   # release camera
