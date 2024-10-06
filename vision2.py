@@ -15,7 +15,7 @@ import cv2
 ports = serial.tools.list_ports.comports()
 serialInst = serial.Serial()
 
-serialInst.baudrate = 9600
+serialInst.baudrate = 115200
 serialInst.port = ports[0].device
 serialInst.open()
 

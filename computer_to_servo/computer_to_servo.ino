@@ -4,10 +4,10 @@ Servo Servo1;
 int servoPin = 9;
 //int potPin = A0;
 
-int angle = 90;
+int angle = 0;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   
   // put your setup code here, to run once:
   Servo1.attach(servoPin);
