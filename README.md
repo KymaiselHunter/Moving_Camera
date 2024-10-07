@@ -11,7 +11,7 @@ This repository contains the code for my moving camera project, combining arduin
 - To communicate between the python script and the arduino, Serial Tools are used to transmit data through a wired connection at any of the computer's Serial Ports  
 
 ## Arduino Hardware
-  -  [ELEGOO UNO R3 Board ATmega328P with USB Cable(Arduino-Compatible) for Arduino]([ELEGOO UNO R3 Board ATmega328P with USB Cable(Arduino-Compatible) for Arduino](https://www.amazon.com/gp/product/B01EWOE0UU/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1)
+  -  [ELEGOO UNO R3 Board ATmega328P with USB Cable(Arduino-Compatible) for Arduino](https://www.amazon.com/gp/product/B01EWOE0UU/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1)
   -  [Two Servo Motors](https://www.amazon.com/gp/product/B0BKPL2Y21/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) (for X and Y axis control)
   -  [Breadboard](https://www.amazon.com/gp/product/B07LFD4LT6/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) and Wires
   -  Camera/Webcam (to capture video input, any camera that can work as a webcam should work)
