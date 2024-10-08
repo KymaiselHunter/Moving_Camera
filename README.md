@@ -34,7 +34,7 @@ Assuming you have python already installed, you just need to clone the repo and 
 
 ### Arduino/Real life:
   - Make any base for a webcam/camera to sit on with a y and x axis a mortor can spin: [I used cardboard, but this simple version is what inspired me](https://youtube.com/shorts/B-VihJLjGr4?si=PQqd_AEZc5qyewnC)  
-  - Set up an arduino connected to two servo motors with the y-axis motor connected to pin 3 and x-axis connected to pin 5: [Servo Motor Tutorial](https://youtu.be/tRNcEzlCOdo?si=kQcFkOxiPwGD7jdV)
+  - Set up an arduino connected to two servo motors with the y-axis motor connected to pin 3 and x-axis connected to pin 5: [Servo Motor Tutorial](https://www.youtube.com/watch?v=QbgTl6VSA9Y)
   - Connect a video camera to a computer and sattle it on the base
   - Upload the Arduino Code (that you may have already retrieved by cloning the repo) to Arduino through any serial port so it can [interpret the python script instructions and control the motors](https://github.com/KymaiselHunter/Moving_Camera/blob/main/computer_to_servo/computer_to_servo.ino)
 
