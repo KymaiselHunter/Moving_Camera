@@ -111,9 +111,12 @@ with FaceDetector.create_from_options(options) as detector:
   #print(f"Resolution set to: {width}x{height}")
 
   # ready motor timers
-  MOTOR_INTERVAL = 0.50
+  #MOTOR_INTERVAL = 60/50 # 60 seconds / 50 rpm = 1.2 seconds per rev
+  #MOTOR_INTERVAL = MOTOR_INTERVAL / 360 # .1.2 seconds per rev / 360 degrees = .00333 seconds per degree
+  #MOTOR_INTERVAL = .5
+  MOTOR_INTERVAL = .02
   last_time = time.time() - MOTOR_INTERVAL
-  mode = 0
+  wait_time = 0
 
   # instantiate the begining angles
   angleX = 90
@@ -153,8 +156,8 @@ with FaceDetector.create_from_options(options) as detector:
     valid_motor_iteration = False
     current_time = time.time()
     #print("time", current_time)
-    if current_time - last_time >= MOTOR_INTERVAL:
-
+    if current_time - last_time >= wait_time:
+      wait_time = MOTOR_INTERVAL
       last_time = current_time
       valid_motor_iteration = True
 
@@ -178,11 +181,11 @@ with FaceDetector.create_from_options(options) as detector:
       centerRecX = int((detection.bounding_box.origin_x+detection.bounding_box.height/2))
       centerRecY = int((detection.bounding_box.origin_y+detection.bounding_box.width/2))
     
-      if abs(centerScreenY-centerRecY) >= 50 or abs(centerScreenX-centerRecX) >= 50:
+      if abs(centerScreenY-centerRecY) >= detection.bounding_box.height/2 or abs(centerScreenX-centerRecX) >= detection.bounding_box.width/2:
         cv2.line(frame, (centerScreenX, centerScreenY), (centerRecX, centerRecY), (255, 255, 0), 3)
       cv2.rectangle(frame, (centerScreenX-50, centerScreenY-50), (centerScreenX+50, centerScreenY+50), (0, 255, 0), 5)
 
-      if abs(centerScreenY-centerRecY) < 50:#detection.bounding_box.height/2:
+      if abs(centerScreenY-centerRecY) < detection.bounding_box.height/2:
         if up != 0:
           up = 0
       elif centerRecY > centerScreenY:
@@ -192,7 +195,7 @@ with FaceDetector.create_from_options(options) as detector:
         if up != 1:
           up = 1
 
-      if abs(centerScreenX-centerRecX) < 50:#detection.bounding_box.width/2:
+      if abs(centerScreenX-centerRecX) < detection.bounding_box.width/2:
         if right != 0:
           right = 0
       elif centerRecX > centerScreenX:
@@ -209,14 +212,15 @@ with FaceDetector.create_from_options(options) as detector:
         if up != 0:
           move = True
           #yChange = 1#int(math.tan(abs(centerScreenY-centerRecY)))
-          yChange = int(math.degrees(math.atan(math.radians(abs(centerScreenY-centerRecY)/10))))
+          yChange = int(math.degrees(math.atan(math.radians(abs(centerScreenY-centerRecY)/15))))
+          wait_time = max(wait_time, MOTOR_INTERVAL * yChange)
 
-        
+
           if up == 1:            
             yChange *= -1
           #print(yChange)
           angleY += yChange
-
+          print(yChange)
           if angleY < 0:
             angleY = 0
           
@@ -228,12 +232,13 @@ with FaceDetector.create_from_options(options) as detector:
         if right != 0:
           move = True
           #xChange = 1#int(math.tan(abs(centerScreenX-centerRecX)))
-          xChange = int(math.degrees(math.atan(math.radians(abs(centerScreenX-centerRecX)/10))))
+          xChange = int(math.degrees(math.atan(math.radians(abs(centerScreenX-centerRecX)/15))))
+          wait_time = max(wait_time, MOTOR_INTERVAL * xChange)
+
           if right == -1:
             xChange *= -1
-          print(xChange, abs(centerScreenX-centerRecX))
           angleX += xChange
-
+          print(xChange)
           if angleX < 0:
             angleX = 0
           
