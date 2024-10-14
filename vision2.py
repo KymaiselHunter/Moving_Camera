@@ -114,13 +114,16 @@ with FaceDetector.create_from_options(options) as detector:
   #MOTOR_INTERVAL = 60/50 # 60 seconds / 50 rpm = 1.2 seconds per rev
   #MOTOR_INTERVAL = MOTOR_INTERVAL / 360 # .1.2 seconds per rev / 360 degrees = .00333 seconds per degree
   #MOTOR_INTERVAL = .5
-  MOTOR_INTERVAL = .02
+  MOTOR_INTERVAL = .0175
   last_time = time.time() - MOTOR_INTERVAL
   wait_time = 0
 
   # instantiate the begining angles
   angleX = 90
   angleY = 90
+
+  #for finding the angle it should move to
+  FOCAL_LENGTH = 15
 
   # Use OpenCV’s VideoCapture to start capturing from the webcam.
   while cap.isOpened():
@@ -212,7 +215,7 @@ with FaceDetector.create_from_options(options) as detector:
         if up != 0:
           move = True
           #yChange = 1#int(math.tan(abs(centerScreenY-centerRecY)))
-          yChange = int(math.degrees(math.atan(math.radians(abs(centerScreenY-centerRecY)/15))))
+          yChange = int(math.degrees(math.atan(math.radians(abs(centerScreenY-centerRecY)/FOCAL_LENGTH))))
           wait_time = max(wait_time, MOTOR_INTERVAL * yChange)
 
 
@@ -232,7 +235,7 @@ with FaceDetector.create_from_options(options) as detector:
         if right != 0:
           move = True
           #xChange = 1#int(math.tan(abs(centerScreenX-centerRecX)))
-          xChange = int(math.degrees(math.atan(math.radians(abs(centerScreenX-centerRecX)/15))))
+          xChange = int(math.degrees(math.atan(math.radians(abs(centerScreenX-centerRecX)/FOCAL_LENGTH))))
           wait_time = max(wait_time, MOTOR_INTERVAL * xChange)
 
           if right == -1:
