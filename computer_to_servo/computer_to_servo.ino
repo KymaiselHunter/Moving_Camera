@@ -39,19 +39,14 @@ void loop() {
       String msg = Serial.readStringUntil('\n');  // Read until newline character
       
       String strAngle = msg.substring(0, msg.indexOf(' '));
-      angle1 += strAngle.toInt();
+      angle1 = strAngle.toInt();
 
       strAngle = msg.substring(msg.indexOf(' ') + 1);
-      angle2 += strAngle.toInt();
+      angle2 = strAngle.toInt();
 
       //Serial.println("100");
       Servo1.write(angle1);
       Servo2.write(angle2);
   
-//      stepper1.step(stepper_direction);
     }
-//    if(stepper_direction > 0)
-//      stepper1.step(-2);
-//    else if (stepper_direction < 0)
-//      stepper1.step(2);
 }
