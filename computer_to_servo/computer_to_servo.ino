@@ -48,10 +48,5 @@ void loop() {
       Servo1.write(angle1);
       Servo2.write(angle2);
   
-//      stepper1.step(stepper_direction);
     }
-//    if(stepper_direction > 0)
-//      stepper1.step(-2);
-//    else if (stepper_direction < 0)
-//      stepper1.step(2);
 }

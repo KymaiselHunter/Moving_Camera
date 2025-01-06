@@ -14,12 +14,24 @@ import cv2
 #import time for giving breaks in between serials writes
 import time
 
+#import math for tangent function
+import math
+
 #port set up
 ports = serial.tools.list_ports.comports()
 serialInst = serial.Serial()
+port_list = []
+
+for i,port in enumerate(ports):
+  port_list.append(str(port))
+  print(f"[{i}]",str(port))
+
+port_val = int(input("Select the port:"))
+
+print(port_val)
 
 serialInst.baudrate = 9600
-serialInst.port = ports[0].device
+serialInst.port = ports[port_val].device
 serialInst.open()
 
 #ready media pipe
@@ -99,13 +111,19 @@ with FaceDetector.create_from_options(options) as detector:
   #print(f"Resolution set to: {width}x{height}")
 
   # ready motor timers
-  MOTOR_INTERVAL = 1.25
+  #MOTOR_INTERVAL = 60/50 # 60 seconds / 50 rpm = 1.2 seconds per rev
+  #MOTOR_INTERVAL = MOTOR_INTERVAL / 360 # .1.2 seconds per rev / 360 degrees = .00333 seconds per degree
+  #MOTOR_INTERVAL = .5
+  MOTOR_INTERVAL = .0175
   last_time = time.time() - MOTOR_INTERVAL
-  mode = 0
+  wait_time = 0
 
   # instantiate the begining angles
   angleX = 90
   angleY = 90
+
+  #for finding the angle it should move to
+  FOCAL_LENGTH = 15
 
   # Use OpenCV’s VideoCapture to start capturing from the webcam.
   while cap.isOpened():
@@ -133,7 +151,7 @@ with FaceDetector.create_from_options(options) as detector:
     # The results are accessible via the `result_callback` provided in
     # the `FaceDetectorOptions` object.
     # The face detector must be created with the live stream mode.
-    frame_timestamp_ms = int(cap.get(cv2.CAP_PROP_POS_MSEC))
+    frame_timestamp_ms = int(cap.get(cv2.CAP_PROP_POS_MSEC))  # Get current time in milliseconds
 
     detector.detect_async(mp_image, frame_timestamp_ms)
     
@@ -141,22 +159,11 @@ with FaceDetector.create_from_options(options) as detector:
     valid_motor_iteration = False
     current_time = time.time()
     #print("time", current_time)
-    if current_time - last_time >= MOTOR_INTERVAL:
-      #print("move")
+    if current_time - last_time >= wait_time:
+      wait_time = MOTOR_INTERVAL
       last_time = current_time
       valid_motor_iteration = True
 
-      #if mode == 0:
-      #  serialInst.write(str(0).encode('utf-8'))
-      ##elif mode == 1:
-      ##  serialInst.write(str(90).encode('utf-8'))
-      #elif mode == 1:
-      #  serialInst.write(str(180).encode('utf-8'))
-
-      #mode += 1
-
-      #if mode >= 2:
-      #  mode = 0
 
 
     #========
@@ -176,12 +183,12 @@ with FaceDetector.create_from_options(options) as detector:
 
       centerRecX = int((detection.bounding_box.origin_x+detection.bounding_box.height/2))
       centerRecY = int((detection.bounding_box.origin_y+detection.bounding_box.width/2))
-
-      if abs(centerScreenY-centerRecY) >= 50 or abs(centerScreenX-centerRecX) >= 50:
+    
+      if abs(centerScreenY-centerRecY) >= detection.bounding_box.height/2 or abs(centerScreenX-centerRecX) >= detection.bounding_box.width/2:
         cv2.line(frame, (centerScreenX, centerScreenY), (centerRecX, centerRecY), (255, 255, 0), 3)
       cv2.rectangle(frame, (centerScreenX-50, centerScreenY-50), (centerScreenX+50, centerScreenY+50), (0, 255, 0), 5)
 
-      if abs(centerScreenY-centerRecY) < 50:
+      if abs(centerScreenY-centerRecY) < detection.bounding_box.height/2:
         if up != 0:
           up = 0
       elif centerRecY > centerScreenY:
@@ -191,7 +198,7 @@ with FaceDetector.create_from_options(options) as detector:
         if up != 1:
           up = 1
 
-      if abs(centerScreenX-centerRecX) < 50:
+      if abs(centerScreenX-centerRecX) < detection.bounding_box.width/2:
         if right != 0:
           right = 0
       elif centerRecX > centerScreenX:
@@ -204,84 +211,47 @@ with FaceDetector.create_from_options(options) as detector:
       if valid_motor_iteration:
         move = False
 
-        if up == -1:
+        # if there is movement on y axis, get the angle
+        if up != 0:
           move = True
-          if abs(centerScreenY-centerRecY) < 60:
-            angleY += 2
-          elif abs(centerScreenY-centerRecY) < 75:
-            angleY += 4
-          elif abs(centerScreenY-centerRecY) < 100:
-            angleY += 5
-          elif abs(centerScreenY-centerRecY) < 125:
-            angleY += 7
-          elif abs(centerScreenY-centerRecY) < 150:
-            angleY += 9
-          else:
-            angleY += 12
-          angleY = min(180, angleY)
-        elif up == 1:
-          move = True
-          if abs(centerScreenY-centerRecY) < 60:
-            angleY -= 2
-          elif abs(centerScreenY-centerRecY) < 75:
-            angleY -= 4
-          elif abs(centerScreenY-centerRecY) < 100:
-            angleY -= 5
-          elif abs(centerScreenY-centerRecY) < 125:
-            angleY -= 7
-          elif abs(centerScreenY-centerRecY) < 150:
-            angleY -= 9
-          else:
-            angleY -= 12
-          angleY = max(0, angleY)
+          #yChange = 1#int(math.tan(abs(centerScreenY-centerRecY)))
+          yChange = int(math.degrees(math.atan(math.radians(abs(centerScreenY-centerRecY)/FOCAL_LENGTH))))
+          wait_time = max(wait_time, MOTOR_INTERVAL * yChange)
+
+
+          if up == 1:            
+            yChange *= -1
+          #print(yChange)
+          angleY += yChange
+          print(yChange)
+          if angleY < 0:
+            angleY = 0
+          
+          if angleY > 180:
+            angleY = 180
         
-        oldanglex= angleX
+        
         # now same thing for the x dir
-        if right == 1:
+        if right != 0:
           move = True
-          if abs(centerScreenX-centerRecX) < 60:
-            angleX += 2
-          elif abs(centerScreenX-centerRecX) < 75:
-            angleX += 4
-          elif abs(centerScreenX-centerRecX) < 100:
-            angleX += 5
-          elif abs(centerScreenX-centerRecX) < 125:
-            angleX += 7
-          elif abs(centerScreenX-centerRecX) < 150:
-            angleX += 9
-          elif abs(centerScreenX-centerRecX) < 175:
-            angleX += 12
-          elif abs(centerScreenX-centerRecX) < 200:
-            angleX += 15
-          elif abs(centerScreenX-centerRecX) < 250:
-            angleX += 20
-          else:
-            angleX += 25
-          angleX = min(180, angleX)
-        elif right == -1:
-          move = True
-          if abs(centerScreenX-centerRecX) < 60:
-            angleX -= 2
-          elif abs(centerScreenX-centerRecX) < 75:
-            angleX -= 4
-          elif abs(centerScreenX-centerRecX) < 100:
-            angleX -= 5
-          elif abs(centerScreenX-centerRecX) < 125:
-            angleX -= 7
-          elif abs(centerScreenX-centerRecX) < 150:
-            angleX -= 9
-          elif abs(centerScreenX-centerRecX) < 175:
-            angleX -= 12
-          elif abs(centerScreenX-centerRecX) < 200:
-            angleX -= 15
-          elif abs(centerScreenX-centerRecX) < 250:
-            angleX -= 20
-          else:
-            angleX -= 25
-          angleX = max(0, angleX)
-        print(abs(oldanglex-angleX))
+          #xChange = 1#int(math.tan(abs(centerScreenX-centerRecX)))
+          xChange = int(math.degrees(math.atan(math.radians(abs(centerScreenX-centerRecX)/FOCAL_LENGTH))))
+          wait_time = max(wait_time, MOTOR_INTERVAL * xChange)
+
+          if right == -1:
+            xChange *= -1
+          angleX += xChange
+          print(xChange)
+          if angleX < 0:
+            angleX = 0
+          
+          if angleX > 180:
+            angleX = 180
+
         if move:
           serialInst.write(f"{angleY} {angleX}\n".encode('utf-8'))
+        #else:
+          #serialInst.write(f"0 0\n".encode('utf-8'))
       
       cv2.imshow('cam', frame)
     else:
