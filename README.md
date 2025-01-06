@@ -3,7 +3,8 @@
 ## Overview
 This repository contains the code for my moving camera project, combining arduino parts and a python script handled on my laptop to create a moving camera that locks onto faces within frame.  
 
-[Youtube Shorts Preview](https://youtube.com/shorts/-iFjHyCmI6o)  
+[Youtube Shorts Preview](https://youtube.com/shorts/tEkJcfBozjU?si=5JPWqOdYkol1ax1Q)
+  
 
 ## Libraries and APIs
 - For the camera, **openCV** handles the basics of Computer Vision, grabbing data from a live webcam and allowing these frames to be analyzed and annotated  
